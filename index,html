@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InJoy | Universal Admin Panel</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root { 
+      --primary: #4f46e5; 
+      --accent: #c8f65a; 
+      --bg: #f1f5f9; 
+      --card: #ffffff; 
+      --text: #1e293b; 
+      --muted: #64748b; 
+      --border: #e2e8f0; 
+      --red: #ef4444; 
+      --green: #10b981; 
+      --yellow: #f59e0b; 
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Montserrat',sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* HEADER */
+    header { background:var(--card); padding:18px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 10px rgba(0,0,0,.05); flex-wrap:wrap; gap:10px; }
+    .logo { font-weight:800; font-size:20px; color:var(--primary); }
+    .logo span { color:#111; }
+    #status { font-size:12px; font-weight:700; color:var(--green); display:flex; align-items:center; gap:6px; }
+    #status::before { content:''; width:8px; height:8px; background:var(--green); border-radius:50%; display:inline-block; }
+    #status.err { color: var(--red); }
+    #status.err::before { background: var(--red); }
+
+    .wrap { max-width:1100px; margin:0 auto; padding:24px; }
+
+    /* GRID */
+    .top-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+    @media(max-width:768px){ .top-grid{grid-template-columns:1fr;} }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
+
+    .card { background:var(--card); border-radius:20px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,.05); border:1px solid var(--border); margin-bottom: 20px; }
+    .card-title { font-size:16px; font-weight:800; margin-bottom:18px; display:flex; align-items:center; gap:8px; color:var(--text); }
+    .card-title i { color:var(--primary); }
+
+    /* FORM */
+    .field { margin-bottom:12px; }
+    .field label { display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+    .field input, .field select, .field textarea {
+      width:100%; padding:11px 14px; border:1px solid var(--border);
+      border-radius:12px; outline:none; font-family:inherit; font-size:14px;
+      color:var(--text); background:var(--bg); transition:.2s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--primary); background:#fff; }
+    .field textarea { resize:vertical; min-height:70px; }
+
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:500px){ .row2{grid-template-columns:1fr;} }
+
+    .btn { cursor:pointer; border:none; font-family:inherit; font-weight:700; border-radius:12px; transition:.2s; }
+    .btn:active { transform:scale(.97); }
+    .btn-primary { background:var(--primary); color:#fff; width:100%; padding:14px; font-size:14px; }
+    .btn-primary:hover { opacity:.9; }
+    .btn-sm { padding:7px 14px; font-size:12px; display:flex; align-items:center; gap:4px; }
+    .btn-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; transition:.15s; }
+    .btn-icon:active { transform:scale(.9); }
+    .btn-icon i { font-size:18px; }
+
+    /* CAT LIST */
+    .cat-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; font-weight:600; }
+    .cat-item:last-child { border-bottom:none; }
+
+    /* VENUES TABLE */
+    .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+    .search-inp { padding:9px 14px; border:1px solid var(--border); border-radius:10px; outline:none; font-family:inherit; font-size:13px; width:220px; }
+    .search-inp:focus { border-color:var(--primary); }
+    select.filter { padding:9px 12px; border:1px solid var(--border); border-radius:10px; outline:none; font-family:inherit; font-size:13px; }
+
+    .venue-item {
+      display:flex; align-items:center; gap:14px;
+      padding:12px; border-radius:14px; margin-bottom:8px;
+      border:1px solid var(--border); background:var(--bg);
+      transition:.2s;
+    }
+    .venue-item:hover { background:#f8fafc; border-color:#cbd5e1; }
+    .venue-thumb { width:52px; height:52px; border-radius:10px; object-fit:cover; flex-shrink:0; background:var(--border); }
+    .venue-info { flex:1; min-width:0; }
+    .venue-name { font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .venue-meta { font-size:12px; color:var(--muted); margin-top:3px; display:flex; gap:8px; flex-wrap:wrap; }
+    .venue-meta b { color:var(--text); }
+    .old-p { text-decoration:line-through; color:var(--red); }
+    .stock-0 { color:var(--red); font-weight:700; }
+    .actions { display:flex; gap:6px; flex-shrink:0; }
+
+    /* ---- Xonalar (Gaming Club) ---- */
+    .cabin-block { margin-bottom: 22px; }
+    .cabin-block:last-child { margin-bottom: 0; }
+    .cabin-title { font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .cabin-title-left { display: flex; align-items: center; gap: 8px; }
+    .cabin-price { font-size: 12px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .room-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .room-chip { min-width: 68px; padding: 10px 14px; border-radius: 14px; text-align: center; border: 2px solid transparent; cursor: pointer; }
+    .room-chip.bosh { background: #d1fae5; color: #047857; border-color: #a7f3d0; }
+    .room-chip.band { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+    .room-chip.kutilmoqda { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .room-num { font-weight: 800; }
+    .room-sub { font-size: 10px; font-weight: 700; opacity: .85; }
+
+    /* ---- Arizalar ---- */
+    .filter-row { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+    .filter-btn { padding: 8px 16px; border-radius: 20px; background: var(--bg); color: var(--text); font-size: 12px; border: 1px solid var(--border); cursor: pointer; font-weight: 700; }
+    .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 14px; margin-bottom: 8px; border: 1px solid var(--border); background: var(--bg); gap: 10px; }
+    .list-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .tag-badge { font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 10px; display: inline-block; width: fit-content; margin-bottom: 2px; }
+    .tag-badge.cabin_booking { background: #e0e7ff; color: var(--primary); }
+    .tag-badge.quick_booking { background: #fef3c7; color: #b45309; }
+    .tag-badge.menu { background: #dcfce7; color: #15803d; }
+    .item-name { font-weight: 700; font-size: 14px; }
+    .item-detail { font-size: 12px; color: var(--muted); }
+
+    .btn-done { background: var(--green); color: white; padding: 8px 12px; border-radius: 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; border: none; cursor: pointer; font-weight: 700; }
+    .btn-done:hover { opacity: .85; }
+
+    /* MODAL */
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(8px); z-index:500; align-items:center; justify-content:center; padding:20px; }
+    .overlay.open { display:flex; }
+    .modal { background:var(--card); border-radius:24px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:popIn .25s ease; }
+    .chart-modal { background:var(--card); border-radius:24px; width:100%; max-width:700px; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:popIn .25s ease; }
+    @keyframes popIn { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+    .modal-title { font-size:18px; font-weight:800; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
+    .modal-title button { background:none; border:none; cursor:pointer; color:var(--muted); font-size:22px; line-height:1; }
+    .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+    .days-row { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+    .day-btn { padding:7px 16px; border-radius:8px; border:1px solid var(--border); background:var(--bg); font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:.15s; }
+    .day-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .chart-wrap { position:relative; width:100%; height:260px; }
+    .chart-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; }
+    .stat-box { background:var(--bg); border-radius:12px; padding:14px; text-align:center; border:1px solid var(--border); }
+    .stat-val { font-size:22px; font-weight:800; color:var(--primary); }
+    .stat-lbl { font-size:11px; color:var(--muted); margin-top:4px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+
+    .status-choice { display: flex; flex-direction: column; gap: 10px; }
+    .status-choice button { padding: 14px; border-radius: 14px; font-size: 14px; display: flex; align-items: center; gap: 10px; justify-content: center; cursor: pointer; border: none; font-weight: 700; }
+    .status-bosh { background: #d1fae5; color: #047857; }
+    .status-band { background: #fee2e2; color: #b91c1c; }
+
+    .img-preview { width:100%; height:160px; object-fit:cover; border-radius:12px; margin-bottom:12px; background:var(--bg); border:1px solid var(--border); display:none; }
+    .img-preview.show { display:block; }
+
+    .toast { position:fixed; bottom:30px; right:24px; background:#1e293b; color:#fff; padding:12px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:9999; transform:translateY(80px); opacity:0; transition:.3s; pointer-events:none; }
+    .toast.show { transform:translateY(0); opacity:1; }
+
+    .empty { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Genesis & InJoy <span>Admin</span></div>
+  <div id="status">Yuklanmoqda...</div>
+</header>
+
+<div class="wrap">
+  <!-- INJOY GAMING CLUB SECTIONS (Xonalar, Arizalar, Menyu) -->
+  <div class="grid">
+    <div class="card">
+      <div class="card-title"><i class="material-icons">meeting_room</i> Xonalar holati</div>
+      <div id="roomsBlock"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="material-icons">inbox</i> Arizalar (buyurtmalar)</div>
+      <div class="filter-row" id="ordersFilterRow">
+        <button class="filter-btn active" data-f="all" onclick="setFilter('all')">Barchasi</button>
+        <button class="filter-btn" data-f="cabin_booking" onclick="setFilter('cabin_booking')">📅 Kabina bron</button>
+        <button class="filter-btn" data-f="quick_booking" onclick="setFilter('quick_booking')">⚡ Tez-kor bron</button>
+        <button class="filter-btn" data-f="menu" onclick="setFilter('menu')">🛒 Menyu buyurtma</button>
+      </div>
+      <div id="ordersBlock"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="material-icons">sell</i> Menyu va Mahsulotlar (InJoy Club)</div>
+      <div class="filter-row" id="menuCatFilter"></div>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+        <button class="btn btn-primary" style="width:auto; padding:8px 16px; font-size:12px;" onclick="openClubAddModal()">+ Mahsulot qo'shish</button>
+      </div>
+      <div id="menuBlock"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="material-icons">campaign</i> Chegirmalar, Turnirlar va Yangiliklar</div>
+      <div class="field">
+        <label>Chegirmalar / Bonuslar</label>
+        <textarea id="txtBonuses" placeholder="Chegirmalar haqida ma'lumot..."></textarea>
+      </div>
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="saveText('bonuses','txtBonuses')">SAQLASH</button>
+
+      <div class="field">
+        <label>Turnirlar</label>
+        <textarea id="txtTournaments" placeholder="Turnirlar haqida ma'lumot..."></textarea>
+      </div>
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="saveText('tournaments','txtTournaments')">SAQLASH</button>
+
+      <div class="field">
+        <label>Yangiliklar</label>
+        <textarea id="txtNews" placeholder="Yangiliklar haqida ma'lumot..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveText('news','txtNews')">SAQLASH</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- TAHRIRLASH MODAL -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <div class="modal-title">
+      Mahsulotni Tahrirlash
+      <button onclick="closeEdit()">×</button>
+    </div>
+    <div class="field">
+      <label>Mahsulot nomi</label>
+      <input type="text" id="eName">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Narxi (UZS)</label>
+        <input type="number" id="ePrice">
+      </div>
+      <div class="field">
+        <label>Qoldiq (dona)</label>
+        <input type="number" id="eStock">
+      </div>
+    </div>
+    <div class="field">
+      <label>Rasm URL</label>
+      <input type="text" id="eThumb" oninput="previewImg('eThumb','ePrev')">
+      <img id="ePrev" class="img-preview" src="" alt="preview">
+    </div>
+    <div class="field">
+      <label>Kategoriya</label>
+      <select id="eTag"></select>
+    </div>
+    <div class="field">
+      <label>Haqida (tavsif)</label>
+      <textarea id="eDesc"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" onclick="saveEdit()" style="flex:1;">SAQLASH</button>
+      <button class="btn" onclick="closeEdit()" style="flex:1;background:var(--bg);color:var(--text);padding:14px;font-size:14px;">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLUB MENYU MAHSULOTINI QO'SHISH/TAHRIRLASH MODALI -->
+<div class="overlay" id="clubItemOverlay">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="clubModalTitle">InJoy Mahsuloti</span>
+      <button onclick="closeClubItemModal()">×</button>
+    </div>
+    <div class="field">
+      <label>Mahsulot nomi</label>
+      <input type="text" id="ciName" placeholder="Masalan: Cola 0.5">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Narxi</label>
+        <input type="text" id="ciPrice" placeholder="10000 so'm yoki raqam">
+      </div>
+      <div class="field">
+        <label>Qoldiq (dona)</label>
+        <input type="number" id="ciStock" placeholder="20">
+      </div>
+    </div>
+    <div class="field">
+      <label>Rasm URL</label>
+      <input type="text" id="ciThumb" placeholder="https://..." oninput="previewImg('ciThumb','ciPrev')">
+      <img id="ciPrev" class="img-preview" src="" alt="preview">
+    </div>
+    <div class="field">
+      <label>Tavsif / Izoh</label>
+      <textarea id="ciDesc" placeholder="Qo'shimcha ma'lumot..."></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveClubItem()" style="margin-top:10px;">SAQLASH</button>
+  </div>
+</div>
+
+<!-- DIAGRAM MODAL -->
+<div class="overlay" id="chartOverlay">
+  <div class="chart-modal">
+    <div class="modal-title">
+      <div>
+        <div id="chartTitle" style="font-size:16px;">Diagramma</div>
+        <div id="chartSub" style="font-size:12px;color:var(--muted);font-weight:600;margin-top:2px;"></div>
+      </div>
+      <button onclick="closeChart()">×</button>
+    </div>
+    <div class="days-row">
+      <button class="day-btn" onclick="setDays(7,this)">7 kun</button>
+      <button class="day-btn active" onclick="setDays(14,this)">14 kun</button>
+      <button class="day-btn" onclick="setDays(30,this)">30 kun</button>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="stockChart"></canvas>
+    </div>
+    <div class="chart-stats">
+      <div class="stat-box"><div class="stat-val" id="statCur">—</div><div class="stat-lbl">Hozirgi qoldiq</div></div>
+      <div class="stat-box"><div class="stat-val" id="statMin">—</div><div class="stat-lbl">Minimal</div></div>
+      <div class="stat-box"><div class="stat-val" id="statMax">—</div><div class="stat-lbl">Maksimal</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importOverlay">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-title">
+      📥 Ko'p mahsulot kiritish
+      <button onclick="closeImport()">×</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <button id="tabExcel" class="day-btn active" onclick="switchTab('excel')">📊 Excel fayl</button>
+      <button id="tabManual" class="day-btn" onclick="switchTab('manual')">✏️ Qo'lda (jadval)</button>
+    </div>
+
+    <!-- EXCEL -->
+    <div id="tabExcelContent">
+      <div style="background:#f0f4ff;border:2px dashed var(--primary);border-radius:14px;padding:24px;text-align:center;margin-bottom:16px;">
+        <i class="material-icons" style="font-size:44px;color:var(--primary);display:block;margin-bottom:8px;">upload_file</i>
+        <div style="font-weight:700;margin-bottom:6px;font-size:15px;">Excel (.xlsx / .xls) yoki CSV fayl yuklang</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Ustunlar: <b>title | price | stock | thumb | tag | desc</b></div>
+        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(event)">
+        <button class="btn btn-primary" style="width:auto;padding:10px 28px;" onclick="document.getElementById('excelFile').click()">Fayl tanlash</button>
+        <a href="#" onclick="downloadTemplate(event)" style="display:block;margin-top:12px;font-size:12px;color:var(--primary);font-weight:700;">📥 Namuna .xlsx fayl yuklash</a>
+      </div>
+      <div id="previewTable" style="display:none;">
+        <div style="font-weight:700;margin-bottom:10px;font-size:14px;" id="previewCount"></div>
+        <div style="overflow-x:auto;max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;">
+          <table id="prevTbl" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
+        </div>
+        <button class="btn btn-primary" onclick="importFromExcel()" style="margin-top:14px;">BAZAGA YUKLASH</button>
+      </div>
+    </div>
+
+    <!-- MANUAL -->
+    <div id="tabManualContent" style="display:none;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Har bir qatorda bitta mahsulot. <b>*</b> — majburiy maydonlar.</div>
+      <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;">
+        <table id="manualTbl" style="width:100%;border-collapse:collapse;min-width:620px;">
+          <thead>
+            <tr style="background:var(--bg);">
+              <th style="padding:9px 8px;font-size:11px;color:var(--muted);border:1px solid var(--border);text-align:center;">#</th>
+              <th style="padding:9px 8px;font-size:11px;border:1px solid var(--border);text-align:left;">Nomi *</th>
+              <th style="padding:9px 8px;font-size:11px;border:1px solid var(--border);text-align:left;">Narxi *</th>
+              <th style="padding:9px 8px;font-size:11px;border:1px solid var(--border);text-align:left;">Soni</th>
+              <th style="padding:9px 8px;font-size:11px;border:1px solid var(--border);text-align:left;">Rasm URL</th>
+              <th style="padding:9px 8px;font-size:11px;border:1px solid var(--border);text-align:left;">Kategoriya</th>
+              <th style="padding:9px 8px;font-size:11px;border:1px solid var(--border);text-align:left;">Haqida</th>
+              <th style="padding:9px 8px;border:1px solid var(--border);"></th>
+            </tr>
+          </thead>
+          <tbody id="manualBody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="btn" onclick="addManualRow()" style="padding:10px 18px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:13px;border-radius:10px;">+ Qator qo'shish</button>
+        <button class="btn btn-primary" onclick="importManual()" style="flex:1;padding:10px;">BAZAGA YUKLASH</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- XONA HOLATINI O'ZGARTIRISH MODALI -->
+<div class="overlay" id="roomOverlay">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="roomModalTitle">Xona holati</span>
+      <button onclick="closeRoomModal()">×</button>
+    </div>
+    <div class="modal-sub" id="roomModalSub"></div>
+    <div class="status-choice">
+      <button class="status-bosh" onclick="setRoomStatus('bo\'sh')"><i class="material-icons">check_circle</i> Bo'shatish</button>
+      <button class="status-band" onclick="setRoomStatus('band')"><i class="material-icons">block</i> Band qilish</button>
+    </div>
+  </div>
+</div>
+
+<!-- NARX TAHRIRLASH MODALI (kabina yoki menyu) -->
+<div class="overlay" id="priceOverlay">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="priceModalTitle">Narxni o'zgartirish</span>
+      <button onclick="closePriceModal()">×</button>
+    </div>
+    <div class="field">
+      <label>Yangi narx</label>
+      <input type="text" id="priceInput" placeholder="Masalan: 15 000 so'm">
+    </div>
+    <button class="btn-primary" onclick="savePrice()" style="margin-top:16px;">SAQLASH</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB = "https://genesis-60ed1-default-rtdb.firebaseio.com/";
+const CLUB_DB_URL = "https://club-3d454-default-rtdb.firebaseio.com";
+const CLUB_AUTH = "AQ.Ab8RN6JOYd6DcNYIYECcvWG7azASP4pmOMEoeuG9ttR-T0KC4A";
+
+let venues = [], cats = [], editingId = null;
+
+// Gaming club state variables
+let cabins = {}, roomStatus = {}, orders = [], users = {}, menu = {}, texts = {};
+let currentFilter = "all", currentMenuCat = null;
+let activeRoom = null;        
+let activePriceTarget = null; 
+let activeClubItem = null;    
+
+function clubFbUrl(path) {
+  return `${CLUB_DB_URL}/${path}.json?auth=${CLUB_AUTH}`;
+}
+
+async function loadData() {
+  try {
+    const [rv, rc, rCab, rStat, rOrd, rUsers, rMenu, rTexts] = await Promise.all([
+      fetch(`${DB}venues.json`),
+      fetch(`${DB}categories.json`),
+      fetch(clubFbUrl("cabins")),
+      fetch(clubFbUrl("room_status")),
+      fetch(clubFbUrl("orders")),
+      fetch(clubFbUrl("users")),
+      fetch(clubFbUrl("menu")),
+      fetch(clubFbUrl("texts"))
+    ]);
+    
+    const dv = await rv.json();
+    venues = dv ? Object.keys(dv).map(k=>({id:k,...dv[k]})) : [];
+    cats = await rc.json() || [];
+    renderCats(); renderVenues();
+
+    cabins = await rCab.json() || {};
+    roomStatus = await rStat.json() || {};
+    const ordersRaw = await rOrd.json() || {};
+    orders = Object.keys(ordersRaw).map(k => ({ id: k, ...ordersRaw[k] })).reverse();
+    users = await rUsers.json() || {};
+    menu = await rMenu.json() || {};
+    if (!currentMenuCat) currentMenuCat = Object.keys(menu)[0] || null;
+    texts = await rTexts.json() || {};
+    renderTexts();
+
+    renderRooms();
+    renderOrders();
+    renderMenu();
+
+    document.getElementById('status').textContent = 'Baza bilan aloqa bor ✅';
+    document.getElementById('status').style.color = 'var(--green)';
+    document.getElementById('status').classList.remove('err');
+  } catch(e) {
+    document.getElementById('status').textContent = 'Xatolik ❌';
+    document.getElementById('status').style.color = 'var(--red)';
+    document.getElementById('status').classList.add('err');
+  }
+}
+
+/* TEXTS: Chegirmalar, Turnirlar, Yangiliklar */
+function renderTexts() {
+  const bEl = document.getElementById('txtBonuses');
+  const tEl = document.getElementById('txtTournaments');
+  const nEl = document.getElementById('txtNews');
+  if (bEl) bEl.value = texts.bonuses || '';
+  if (tEl) tEl.value = texts.tournaments || '';
+  if (nEl) nEl.value = texts.news || '';
+}
+
+async function saveText(key, inputId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  const val = el.value;
+  await fetch(clubFbUrl("texts"), { method: 'PATCH', body: JSON.stringify({ [key]: val }) });
+  texts[key] = val;
+  toast("Saqlandi ✅", 'var(--green)');
+}
+
+/* TOAST */
+function toast(msg, color='#1e293b') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = color;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+/* IMAGE PREVIEW */
+function previewImg(inpId, prevId) {
+  const url = document.getElementById(inpId).value;
+  const img = document.getElementById(prevId);
+  if(url) { img.src=url; img.classList.add('show'); }
+  else img.classList.remove('show');
+}
+
+/* CATS */
+function renderCats() {
+  const sel1 = document.getElementById('vTag');
+  const sel2 = document.getElementById('eTag');
+  const opts = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if (sel1) sel1.innerHTML = opts;
+  if (sel2) sel2.innerHTML = opts;
+
+  const catListEl = document.getElementById('catList');
+  if (catListEl) catListEl.innerHTML = cats.length
+    ? cats.map((c,i)=>`
+        <div class="cat-item" id="catRow_${i}">
+          <span id="catLabel_${i}" style="flex:1;">${c}</span>
+          <input id="catInp_${i}" value="${c}" style="display:none;flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+          <div style="display:flex;gap:6px;margin-left:8px;">
+            <button id="catEditBtn_${i}" class="btn-icon" style="background:#e0e7ff;color:var(--primary);" onclick="startEditCat(${i})">
+              <i class="material-icons" style="font-size:16px;">edit</i>
+            </button>
+            <button id="catSaveBtn_${i}" class="btn-icon" style="display:none;background:#d1fae5;color:var(--green);" onclick="saveEditCat(${i})">
+              <i class="material-icons" style="font-size:16px;">check</i>
+            </button>
+            <button class="btn-icon" style="background:#fee2e2;color:var(--red);" onclick="deleteCat(${i})">
+              <i class="material-icons" style="font-size:16px;">delete</i>
+            </button>
+          </div>
+        </div>`).join('')
+    : '<div class="empty">Kategoriya yo\'q</div>';
+}
+
+function startEditCat(i) {
+  document.getElementById(`catLabel_${i}`).style.display='none';
+  document.getElementById(`catInp_${i}`).style.display='block';
+  document.getElementById(`catEditBtn_${i}`).style.display='none';
+  document.getElementById(`catSaveBtn_${i}`).style.display='flex';
+  document.getElementById(`catInp_${i}`).focus();
+}
+
+async function saveEditCat(i) {
+  const val = document.getElementById(`catInp_${i}`).value.trim();
+  if(!val) return alert("Nom bo'sh bo'lishi mumkin emas!");
+  cats[i] = val;
+  await fetch(`${DB}categories.json`,{method:'PUT',body:JSON.stringify(cats)});
+  toast("Kategoriya yangilandi ✅",'var(--primary)');
+  loadData();
+}
+
+async function addCategory() {
+  const val = document.getElementById('newCat').value.trim();
+  if(!val) return;
+  cats.push(val);
+  await fetch(`${DB}categories.json`,{method:'PUT',body:JSON.stringify(cats)});
+  document.getElementById('newCat').value='';
+  toast("Kategoriya qo'shildi ✅", 'var(--green)');
+  loadData();
+}
+
+async function deleteCat(i) {
+  if(!confirm(`"${cats[i]}" o'chirilsinmi?`)) return;
+  cats.splice(i,1);
+  await fetch(`${DB}categories.json`,{method:'PUT',body:JSON.stringify(cats)});
+  toast("O'chirildi","#ef4444");
+  loadData();
+}
+
+/* VENUES */
+function renderVenues() {
+  const searchEl = document.getElementById('searchInp');
+  const sortEl = document.getElementById('sortOrder');
+  const countEl = document.getElementById('vCount');
+  const listEl = document.getElementById('venueList');
+  if (!searchEl || !sortEl || !countEl || !listEl) return;
+
+  const q = searchEl.value.toLowerCase();
+  const sort = sortEl.value;
+  let list = venues.filter(v=>v.title?.toLowerCase().includes(q));
+
+  if(sort==='stock_asc') list.sort((a,b)=>(a.stock||0)-(b.stock||0));
+  else if(sort==='stock_desc') list.sort((a,b)=>(b.stock||0)-(a.stock||0));
+  else if(sort==='price_asc') list.sort((a,b)=>(a.price||0)-(b.price||0));
+  else if(sort==='price_desc') list.sort((a,b)=>(b.price||0)-(a.price||0));
+
+  countEl.textContent = list.length;
+
+  if(!list.length) {
+    listEl.innerHTML = '<div class="empty">Mahsulot topilmadi</div>';
+    return;
+  }
+
+  const imgField = v => v.thumb||v.image||v.img||v.photo||v.url||'';
+
+  listEl.innerHTML = list.map(v=>`
+    <div class="venue-item">
+      <img class="venue-thumb" src="${imgField(v)}" onerror="this.src=''">
+      <div class="venue-info">
+        <div class="venue-name">${v.title||'Nomsiz'}</div>
+        <div class="venue-meta">
+          <span>📦 ${v.tag||'—'}</span>
+          <span>${v.oldPrice&&v.oldPrice>v.price?`<span class="old-p">${v.oldPrice.toLocaleString()}</span> `:''}<b>${(v.price||0).toLocaleString()} UZS</b></span>
+          <span class="${(v.stock||0)===0?'stock-0':''}">Qoldiq: <b>${v.stock||0}</b></span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-icon" style="background:#f0fdf4;color:#16a34a;" title="Diagramma" onclick="openChart('${v.id}', 'venue')">
+          <i class="material-icons">bar_chart</i>
+        </button>
+        <button class="btn-icon" style="background:#e0e7ff;color:var(--primary);" title="Tahrirlash" onclick="openEdit('${v.id}')">
+          <i class="material-icons">edit</i>
+        </button>
+        <button class="btn-icon" style="background:#fef3c7;color:var(--yellow);" title="Soni kamaytirish" onclick="decreaseStock('${v.id}',${v.stock||0})">
+          <i class="material-icons">remove_circle_outline</i>
+        </button>
+        <button class="btn-icon" style="background:#d1fae5;color:var(--green);" title="Narx o'zgartirish" onclick="editPrice('${v.id}',${v.price||0})">
+          <i class="material-icons">payments</i>
+        </button>
+        <button class="btn-icon" style="background:#fee2e2;color:var(--red);" title="O'chirish" onclick="deleteVenue('${v.id}')">
+          <i class="material-icons">delete</i>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+async function addVenue() {
+  const data = {
+    title: document.getElementById('vTitle').value.trim(),
+    price: parseInt(document.getElementById('vPrice').value)||0,
+    stock: parseInt(document.getElementById('vStock').value)||0,
+    thumb: document.getElementById('vThumb').value.trim(),
+    tag: document.getElementById('vTag').value,
+    desc: document.getElementById('vDesc').value.trim(),
+    oldPrice: 0
+  };
+  if(!data.title) return alert("Mahsulot nomini kiriting!");
+  if(!data.price) return alert("Narxni kiriting!");
+  await fetch(`${DB}venues.json`,{method:'POST',body:JSON.stringify(data)});
+  toast("Mahsulot qo'shildi ✅",'var(--green)');
+  ['vTitle','vPrice','vStock','vThumb','vDesc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('vPrev').classList.remove('show');
+  loadData();
+}
+
+/* EDIT MODAL */
+function openEdit(id) {
+  const v = venues.find(x=>x.id===id); if(!v) return;
+  editingId = id;
+  document.getElementById('eName').value = v.title||'';
+  document.getElementById('ePrice').value = v.price||'';
+  document.getElementById('eStock').value = v.stock||0;
+  document.getElementById('eThumb').value = v.thumb||v.image||v.img||v.photo||'';
+  document.getElementById('eDesc').value = v.desc||'';
+  const sel = document.getElementById('eTag');
+  [...sel.options].forEach(o=>{ o.selected = o.value===v.tag; });
+  const prev = document.getElementById('ePrev');
+  if(v.thumb||v.image) { prev.src=v.thumb||v.image; prev.classList.add('show'); }
+  else prev.classList.remove('show');
+
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function closeEdit() {
+  document.getElementById('editOverlay').classList.remove('open');
+  editingId = null;
+}
+
+async function saveEdit() {
+  if(!editingId) return;
+  const v = venues.find(x=>x.id===editingId);
+  const newPrice = parseInt(document.getElementById('ePrice').value)||0;
+  const updates = {
+    title: document.getElementById('eName').value.trim(),
+    price: newPrice,
+    stock: parseInt(document.getElementById('eStock').value)||0,
+    thumb: document.getElementById('eThumb').value.trim(),
+    tag: document.getElementById('eTag').value,
+    desc: document.getElementById('eDesc').value.trim(),
+    oldPrice: (v && newPrice < v.price) ? v.price : (v?.oldPrice||0)
+  };
+  if(!updates.title) return alert("Nom bo'sh bo'lishi mumkin emas!");
+  await fetch(`${DB}venues/${editingId}.json`,{method:'PATCH',body:JSON.stringify(updates)});
+  await saveSnapshot(editingId, updates.stock, 'venue');
+  toast("Saqlandi ✅",'var(--primary)');
+  closeEdit(); loadData();
+}
+
+/* QUICK ACTIONS */
+async function decreaseStock(id, cur) {
+  const amt = prompt("Nechta kamaytirish?","1");
+  if(amt===null||amt==="") return;
+  const n = parseInt(amt);
+  if(isNaN(n)||n<0) return alert("To'g'ri raqam kiriting!");
+  const nv = Math.max(0, cur-n);
+  await fetch(`${DB}venues/${id}/stock.json`,{method:'PUT',body:JSON.stringify(nv)});
+  await saveSnapshot(id, nv, 'venue');
+  toast(`Qoldiq: ${nv} ta`,'var(--yellow)');
+  loadData();
+}
+
+async function editPrice(id, cur) {
+  const np = prompt("Yangi narx (UZS):", cur);
+  if(np===null||np==="") return;
+  const parsed = parseInt(np);
+  if(isNaN(parsed)) return alert("To'g'ri raqam kiriting!");
+  const updates = { price: parsed, oldPrice: parsed<cur ? cur : 0 };
+  await fetch(`${DB}venues/${id}.json`,{method:'PATCH',body:JSON.stringify(updates)});
+  toast(parsed<cur ? `Chegirma saqlandi! -${Math.round((1-parsed/cur)*100)}%` : "Narx yangilandi",'var(--green)');
+  loadData();
+}
+
+async function deleteVenue(id) {
+  const v = venues.find(x=>x.id===id);
+  if(!confirm(`"${v?.title}" o'chirilsinmi? Bu amalni qaytarib bo'lmaydi!`)) return;
+  await fetch(`${DB}venues/${id}.json`,{method:'DELETE'});
+  toast("Mahsulot o'chirildi","#ef4444");
+  loadData();
+}
+
+document.getElementById('editOverlay').addEventListener('click',function(e){ if(e.target===this) closeEdit(); });
+document.getElementById('chartOverlay').addEventListener('click',function(e){ if(e.target===this) closeChart(); });
+
+/* ===== STOCK SNAPSHOT ===== */
+async function saveSnapshot(id, stockVal, type='venue') {
+  const today = new Date().toISOString().split('T')[0];
+  if (type === 'venue') {
+    await fetch(`${DB}stock_history/${id}/${today}.json`, {
+      method:'PUT', body:JSON.stringify(stockVal)
+    });
+  } else {
+    await fetch(`${CLUB_DB_URL}/stock_history/${id}/${today}.json?auth=${CLUB_AUTH}`, {
+      method:'PUT', body:JSON.stringify(stockVal)
+    });
+  }
+}
+
+/* ===== CHART ===== */
+let chartInstance = null;
+let chartTargetId = null;
+let chartTargetType = 'venue';
+let chartDays = 14;
+
+async function openChart(id, type='venue') {
+  chartTargetId = id;
+  chartTargetType = type;
+  let title = 'Mahsulot';
+  let subTag = '';
+  let curStock = 0;
+
+  if (type === 'venue') {
+    const v = venues.find(x=>x.id===id); if(!v) return;
+    title = v.title||'Mahsulot';
+    subTag = v.tag||'';
+    curStock = v.stock||0;
+  } else {
+    const it = menu[currentMenuCat]?.[id]; if(!it) return;
+    title = it.name||'Klub mahsulot';
+    subTag = currentMenuCat;
+    curStock = it.stock||0;
+  }
+
+  document.getElementById('chartTitle').textContent = title;
+  document.getElementById('chartSub').textContent = `${subTag} | Hozirgi qoldiq: ${curStock} ta`;
+  document.getElementById('chartOverlay').classList.add('open');
+  await drawChart(id, chartDays, type);
+}
+
+function closeChart() {
+  document.getElementById('chartOverlay').classList.remove('open');
+  if(chartInstance) { chartInstance.destroy(); chartInstance=null; }
+  chartTargetId = null;
+}
+
+async function setDays(n, btn) {
+  chartDays = n;
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(chartTargetId) await drawChart(chartTargetId, n, chartTargetType);
+}
+
+async function drawChart(id, days, type='venue') {
+  let history = {};
+  try {
+    const url = type === 'venue' ? `${DB}stock_history/${id}.json` : `${CLUB_DB_URL}/stock_history/${id}.json?auth=${CLUB_AUTH}`;
+    const r = await fetch(url);
+    history = await r.json() || {};
+  } catch(e){}
+
+  const labels = [];
+  const data = [];
+  let curStock = 0;
+  if(type === 'venue') {
+    const v = venues.find(x=>x.id===id);
+    curStock = v?.stock || 0;
+  } else {
+    const it = menu[currentMenuCat]?.[id];
+    curStock = it?.stock || 0;
+  }
+
+  for(let i=days-1; i>=0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    const key = d.toISOString().split('T')[0];
+    const label = `${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`;
+    labels.push(label);
+    if(history[key] !== undefined) {
+      data.push(history[key]);
+    } else {
+      data.push(data.length>0 ? data[data.length-1] : curStock);
+    }
+  }
+
+  const nonNull = data.filter(x=>x!=null);
+  document.getElementById('statCur').textContent = curStock;
+  document.getElementById('statMin').textContent = nonNull.length ? Math.min(...nonNull) : '—';
+  document.getElementById('statMax').textContent = nonNull.length ? Math.max(...nonNull) : '—';
+
+  if(chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById('stockChart').getContext('2d');
+
+  const gradient = ctx.createLinearGradient(0,0,0,260);
+  gradient.addColorStop(0,'rgba(79,70,229,0.3)');
+  gradient.addColorStop(1,'rgba(79,70,229,0.0)');
+
+  chartInstance = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Qoldiq (dona)',
+        data,
+        borderColor:'#4f46e5',
+        backgroundColor: gradient,
+        borderWidth:2.5,
+        pointBackgroundColor:'#4f46e5',
+        pointRadius:4,
+        pointHoverRadius:6,
+        tension:0.35,
+        fill:true
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1e293b',
+          titleFont:{family:'Montserrat',weight:'700'},
+          bodyFont:{family:'Montserrat'},
+          padding:10,
+          callbacks:{ label: ctx=>`${ctx.parsed.y} ta` }
+        }
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{family:'Montserrat',size:11},color:'#94a3b8'} },
+        y:{ grid:{color:'rgba(0,0,0,.05)'}, ticks:{font:{family:'Montserrat',size:11},color:'#94a3b8'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+/* ===== GAMING CLUB FUNCTIONS (Xonalar, Arizalar, Menyu) ===== */
+const CABIN_NAMES_FALLBACK = { mini: "Mini Kabina", standard: "Standard Kabina", vip: "VIP Kabina" };
+const TYPE_LABELS = {
+  cabin_booking: "📅 Kabina bron",
+  quick_booking: "⚡ Tez-kor bron",
+  menu: "🛒 Menyu buyurtma"
+};
+const CATEGORY_LABELS = {
+  gazaklar: "🍿 Gazaklar", tamaki: "🚬 Tamaki", suvlar: "🥤 Suvlar",
+  choylar: "🍵 Choylar", shirinliklar: "🍰 Shirinliklar"
+};
+
+function renderRooms() {
+  const block = document.getElementById('roomsBlock');
+  const order = ["mini", "standard", "vip"];
+  block.innerHTML = order.map(cabinKey => {
+    const cab = cabins[cabinKey];
+    if (!cab) return "";
+    let statuses = roomStatus[cabinKey] || {};
+    if (Array.isArray(statuses)) {
+      const obj = {};
+      statuses.forEach((v, i) => { obj[String(i + 1)] = v; });
+      statuses = obj;
+    }
+    const roomKeys = Object.keys(statuses).sort((a, b) => Number(a) - Number(b));
+    const roomsHtml = roomKeys.map(room => {
+      const st = statuses[room] || "bo'sh";
+      const cls = st === "band" ? "band" : (st === "bo'sh" ? "bosh" : "kutilmoqda");
+      return `
+        <div class="room-chip ${cls}" onclick="openRoomModal('${cabinKey}', '${room}', '${cab.name || cabinKey}')">
+          <div class="room-num">#${room}</div>
+          <div class="room-sub">${st}</div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="cabin-block">
+        <div class="cabin-title">
+          <div class="cabin-title-left">${cab.emoji || ''} ${cab.name || CABIN_NAMES_FALLBACK[cabinKey] || cabinKey}</div>
+          <div class="cabin-price">
+            💰 ${cab.price || '-'}
+            <button class="btn-icon" style="background:#e0e7ff;color:var(--primary);width:26px;height:26px;" title="Narxni o'zgartirish" onclick="openClubPriceModal('cabin', '${cabinKey}', null)">
+              <i class="material-icons" style="font-size:14px;">edit</i>
+            </button>
+          </div>
+        </div>
+        <div class="room-row">${roomsHtml || '<span class="empty">Xonalar topilmadi</span>'}</div>
+      </div>`;
+  }).join('');
+}
+
+function openRoomModal(cabinKey, room, cabinName) {
+  activeRoom = { cabinKey, room };
+  document.getElementById('roomModalTitle').textContent = `${cabinName} — Xona #${room}`;
+  document.getElementById('roomModalSub').textContent = "Ushbu xona uchun yangi holatni tanlang:";
+  document.getElementById('roomOverlay').classList.add('open');
+}
+
+function closeRoomModal() {
+  document.getElementById('roomOverlay').classList.remove('open');
+  activeRoom = null;
+}
+
+async function setRoomStatus(newStatus) {
+  if (!activeRoom) return;
+  const { cabinKey, room } = activeRoom;
+  await fetch(clubFbUrl(`room_status/${cabinKey}/${room}`), { method: 'PUT', body: JSON.stringify(newStatus) });
+  toast(newStatus === "band" ? `#${room} band qilindi 🔴` : `#${room} bo'shatildi 🟢`, newStatus === "band" ? 'var(--red)' : 'var(--green)');
+  closeRoomModal();
+  loadData();
+}
+
+function openClubPriceModal(kind, cabinKeyOrCat, itemId) {
+  activePriceTarget = { kind, cabinKeyOrCat, itemId };
+  let currentPrice = '';
+  if (kind === 'cabin') {
+    currentPrice = (cabins[cabinKeyOrCat] && cabins[cabinKeyOrCat].price) || '';
+  } else {
+    currentPrice = (menu[cabinKeyOrCat] && menu[cabinKeyOrCat][itemId] && menu[cabinKeyOrCat][itemId].price) || '';
+  }
+  document.getElementById('priceModalTitle').textContent = "Narxni o'zgartirish";
+  document.getElementById('priceInput').value = currentPrice;
+  document.getElementById('priceOverlay').classList.add('open');
+}
+
+function closePriceModal() {
+  document.getElementById('priceOverlay').classList.remove('open');
+  activePriceTarget = null;
+}
+
+async function savePrice() {
+  if (!activePriceTarget) return;
+  const newVal = document.getElementById('priceInput').value.trim();
+  if (!newVal) return;
+  const { kind, cabinKeyOrCat, itemId } = activePriceTarget;
+  if (kind === 'cabin') {
+    await fetch(clubFbUrl(`cabins/${cabinKeyOrCat}/price`), { method: 'PUT', body: JSON.stringify(newVal) });
+  } else {
+    await fetch(clubFbUrl(`menu/${cabinKeyOrCat}/${itemId}/price`), { method: 'PUT', body: JSON.stringify(newVal) });
+  }
+  toast("Narx yangilandi ✅", 'var(--primary)');
+  closePriceModal();
+  loadData();
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.getElementById('ordersFilterRow').querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.f === f));
+  renderOrders();
+}
+
+function userLabel(userId) {
+  const u = users[String(userId)];
+  if (!u) return `ID: ${userId}`;
+  return `${u.full_name || 'Nomaʼlum'}${u.username ? ' (@' + u.username + ')' : ''} — ${u.phone || ''}`;
+}
+
+function renderOrders() {
+  const block = document.getElementById('ordersBlock');
+  const list = currentFilter === "all" ? orders : orders.filter(o => o.type === currentFilter);
+
+  if (list.length === 0) {
+    block.innerHTML = `<div class="empty">Hozircha arizalar yo'q</div>`;
+    return;
+  }
+
+  block.innerHTML = list.map(o => {
+    const typeLabel = TYPE_LABELS[o.type] || o.type;
+    let detail = "";
+    if (o.type === "cabin_booking") {
+      const cabName = (cabins[o.cabin] && cabins[o.cabin].name) || o.cabin;
+      detail = `${cabName}, Xona #${o.room}, Vaqt: ${o.time || '-'}`;
+    } else if (o.type === "quick_booking") {
+      const cabName = (cabins[o.cabin] && cabins[o.cabin].name) || o.cabin;
+      detail = `${cabName}, Vaqt: ${o.time || '-'}`;
+    } else if (o.type === "menu") {
+      detail = `Xona: ${o.room || '-'}, Mahsulot: ${o.item || '-'}, Izoh: ${o.note || '-'}`;
+    }
+
+    return `
+      <div class="list-item">
+        <div class="list-info">
+          <span class="tag-badge ${o.type}">${typeLabel}</span>
+          <div class="item-name">${userLabel(o.user_id)}</div>
+          <div class="item-detail">${detail}</div>
+        </div>
+        <button class="btn-done" onclick="markDone('${o.id}')">
+          <i class="material-icons" style="font-size: 16px;">check</i> Bajarildi
+        </button>
+      </div>`;
+  }).join('');
+}
+
+async function markDone(orderId) {
+  if (!confirm("Ushbu arizani bajarilgan deb belgilab, ro'yxatdan o'chirasizmi?")) return;
+  await fetch(clubFbUrl(`orders/${orderId}`), { method: 'DELETE' });
+  toast("Ariza bajarildi deb belgilandi ✅", 'var(--green)');
+  loadData();
+}
+
+function renderMenuCatFilter() {
+  const filterBlock = document.getElementById('menuCatFilter');
+  const catKeys = Object.keys(menu);
+  if (catKeys.length && !currentMenuCat) currentMenuCat = catKeys[0];
+  filterBlock.innerHTML = catKeys.map(cat => `
+    <button class="filter-btn ${cat === currentMenuCat ? 'active' : ''}" onclick="setMenuCat('${cat}')">
+      ${CATEGORY_LABELS[cat] || cat}
+    </button>
+  `).join('');
+}
+
+function setMenuCat(cat) {
+  currentMenuCat = cat;
+  renderMenuCatFilter();
+  renderMenu();
+}
+
+function renderMenu() {
+  renderMenuCatFilter();
+  const block = document.getElementById('menuBlock');
+  const items = (currentMenuCat && menu[currentMenuCat]) ? menu[currentMenuCat] : {};
+  const entries = Object.keys(items).sort((a, b) => (items[a].name || '').localeCompare(items[b].name || ''));
+
+  if (entries.length === 0) {
+    block.innerHTML = `<div class="empty">Bu kategoriyada mahsulot yo'q</div>`;
+    return;
+  }
+
+  block.innerHTML = entries.map(itemId => {
+    const it = items[itemId];
+    const imgUrl = it.thumb || it.image || it.img || '';
+    const stockVal = it.stock !== undefined ? it.stock : 0;
+    return `
+      <div class="venue-item">
+        ${imgUrl ? `<img class="venue-thumb" src="${imgUrl}" onerror="this.style.display='none'">` : `<div class="venue-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--muted)"><i class="material-icons">fastfood</i></div>`}
+        <div class="venue-info">
+          <div class="venue-name">${it.name || itemId}</div>
+          <div class="venue-meta">
+            <span><b>${it.price || '0'} UZS</b></span>
+            <span class="${stockVal === 0 ? 'stock-0' : ''}">Qoldiq: <b>${stockVal}</b></span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-icon" style="background:#f0fdf4;color:#16a34a;" title="Diagramma" onclick="openChart('${itemId}', 'club')">
+            <i class="material-icons">bar_chart</i>
+          </button>
+          <button class="btn-icon" style="background:#e0e7ff;color:var(--primary);" title="Tahrirlash" onclick="openClubEditModal('${currentMenuCat}', '${itemId}')">
+            <i class="material-icons">edit</i>
+          </button>
+          <button class="btn-icon" style="background:#fef3c7;color:var(--yellow);" title="Soni kamaytirish" onclick="decreaseClubStock('${currentMenuCat}', '${itemId}', ${stockVal})">
+            <i class="material-icons">remove_circle_outline</i>
+          </button>
+          <button class="btn-icon" style="background:#d1fae5;color:var(--green);" title="Narx o'zgartirish" onclick="openClubPriceModal('menu', '${currentMenuCat}', '${itemId}')">
+            <i class="material-icons">payments</i>
+          </button>
+          <button class="btn-icon" style="background:#fee2e2;color:var(--red);" title="O'chirish" onclick="deleteClubItem('${currentMenuCat}', '${itemId}')">
+            <i class="material-icons">delete</i>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openClubAddModal() {
+  if (!currentMenuCat) return alert("Avval kategoriya tanlang!");
+  activeClubItem = { category: currentMenuCat, itemId: null };
+  document.getElementById('clubModalTitle').textContent = "InJoy: Yangi Mahsulot";
+  document.getElementById('ciName').value = '';
+  document.getElementById('ciPrice').value = '';
+  document.getElementById('ciStock').value = '10';
+  document.getElementById('ciThumb').value = '';
+  document.getElementById('ciDesc').value = '';
+  document.getElementById('ciPrev').classList.remove('show');
+  document.getElementById('clubItemOverlay').classList.add('open');
+}
+
+function openClubEditModal(cat, itemId) {
+  const it = menu[cat]?.[itemId];
+  if (!it) return;
+  activeClubItem = { category: cat, itemId: itemId };
+  document.getElementById('clubModalTitle').textContent = "InJoy: Mahsulotni Tahrirlash";
+  document.getElementById('ciName').value = it.name || '';
+  document.getElementById('ciPrice').value = it.price || '';
+  document.getElementById('ciStock').value = it.stock !== undefined ? it.stock : 0;
+  document.getElementById('ciThumb').value = it.thumb || it.image || '';
+  document.getElementById('ciDesc').value = it.desc || '';
+  const prev = document.getElementById('ciPrev');
+  if(it.thumb || it.image) { prev.src = it.thumb || it.image; prev.classList.add('show'); }
+  else prev.classList.remove('show');
+  document.getElementById('clubItemOverlay').classList.add('open');
+}
+
+function closeClubItemModal() {
+  document.getElementById('clubItemOverlay').classList.remove('open');
+  activeClubItem = null;
+}
+
+async function saveClubItem() {
+  if (!activeClubItem) return;
+  const { category, itemId } = activeClubItem;
+  const name = document.getElementById('ciName').value.trim();
+  const price = document.getElementById('ciPrice').value.trim();
+  const stock = parseInt(document.getElementById('ciStock').value) || 0;
+  const thumb = document.getElementById('ciThumb').value.trim();
+  const desc = document.getElementById('ciDesc').value.trim();
+
+  if(!name) return alert("Mahsulot nomini kiriting!");
+  if(!price) return alert("Narxni kiriting!");
+
+  const data = { name, price, stock, thumb, desc };
+
+  if (itemId) {
+    await fetch(clubFbUrl(`menu/${category}/${itemId}`), { method: 'PATCH', body: JSON.stringify(data) });
+    await saveSnapshot(itemId, stock, 'club');
+    toast("Mahsulot yangilandi ✅", 'var(--primary)');
+  } else {
+    const res = await fetch(clubFbUrl(`menu/${category}`), { method: 'POST', body: JSON.stringify(data) });
+    const json = await res.json();
+    if (json && json.name) {
+      await saveSnapshot(json.name, stock, 'club');
+    }
+    toast("Mahsulot qo'shildi ✅", 'var(--green)');
+  }
+  closeClubItemModal();
+  loadData();
+}
+
+async function decreaseClubStock(cat, itemId, cur) {
+  const amt = prompt("Nechta kamaytirish?", "1");
+  if(amt === null || amt === "") return;
+  const n = parseInt(amt);
+  if(isNaN(n) || n < 0) return alert("To'g'ri raqam kiriting!");
+  const nv = Math.max(0, cur - n);
+  await fetch(clubFbUrl(`menu/${cat}/${itemId}/stock`), { method: 'PUT', body: JSON.stringify(nv) });
+  await saveSnapshot(itemId, nv, 'club');
+  toast(`Qoldiq: ${nv} ta`, 'var(--yellow)');
+  loadData();
+}
+
+async function deleteClubItem(cat, itemId) {
+  if(!confirm("Ushbu mahsulot o'chirilsinmi?")) return;
+  await fetch(clubFbUrl(`menu/${cat}/${itemId}`), { method: 'DELETE' });
+  toast("Mahsulot o'chirildi", "#ef4444");
+  loadData();
+}
+
+document.getElementById('roomOverlay').addEventListener('click', function (e) { if (e.target === this) closeRoomModal(); });
+document.getElementById('priceOverlay').addEventListener('click', function (e) { if (e.target === this) closePriceModal(); });
+document.getElementById('clubItemOverlay').addEventListener('click', function (e) { if (e.target === this) closeClubItemModal(); });
+
+/* ===== IMPORT ===== */
+let importRows = [];
+let manualRowCount = 0;
+
+function openImport() {
+  document.getElementById('importOverlay').classList.add('open');
+  renderManualTable();
+}
+function closeImport() {
+  document.getElementById('importOverlay').classList.remove('open');
+  importRows = [];
+  document.getElementById('previewTable').style.display='none';
+  document.getElementById('excelFile').value='';
+}
+function switchTab(tab) {
+  document.getElementById('tabExcelContent').style.display = tab==='excel'?'block':'none';
+  document.getElementById('tabManualContent').style.display = tab==='manual'?'block':'none';
+  document.getElementById('tabExcel').classList.toggle('active', tab==='excel');
+  document.getElementById('tabManual').classList.toggle('active', tab==='manual');
+}
+
+async function handleFile(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const XLSX = await loadXLSX();
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf,{type:'array'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const raw = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  const headers = raw[0]?.map(h=>String(h).toLowerCase().trim())||[];
+  const colMap = {title:-1,price:-1,stock:-1,thumb:-1,tag:-1,desc:-1};
+  const aliases = {
+    title:['title','nomi','nom','mahsulot','name'],
+    price:['price','narx','narxi','cost'],
+    stock:['stock','soni','son','qoldiq','qty'],
+    thumb:['thumb','rasm','image','img','url','photo'],
+    tag:['tag','kategoriya','category'],
+    desc:['desc','haqida','tavsif','description']
+  };
+  Object.keys(aliases).forEach(k=>{ aliases[k].forEach(a=>{ if(colMap[k]===-1){const idx=headers.indexOf(a);if(idx!==-1)colMap[k]=idx;} }); });
+  const noHeader = Object.values(colMap).every(v=>v===-1);
+  if(noHeader){colMap.title=0;colMap.price=1;colMap.stock=2;colMap.thumb=3;colMap.tag=4;colMap.desc=5;}
+  const startRow = noHeader?0:1;
+  importRows = raw.slice(startRow).map(r=>({
+    title:String(r[colMap.title]||'').trim(),
+    price:parseInt(r[colMap.price])||0,
+    stock:parseInt(r[colMap.stock])||0,
+    thumb:String(r[colMap.thumb]||'').trim(),
+    tag:String(r[colMap.tag]||cats[0]||'').trim(),
+    desc:String(r[colMap.desc]||'').trim(),
+    oldPrice:0
+  })).filter(r=>r.title);
+  showPreview();
+}
+
+function showPreview() {
+  const tbl = document.getElementById('prevTbl');
+  document.getElementById('previewCount').textContent=`${importRows.length} ta mahsulot topildi`;
+  tbl.innerHTML=`<tr style="background:var(--bg);">${['Nomi','Narxi','Soni','Rasm','Kategoriya','Haqida'].map(h=>`<th style="padding:6px 10px;border:1px solid var(--border);font-size:11px;text-align:left;white-space:nowrap;">${h}</th>`).join('')}</tr>`
+    +importRows.map(r=>`<tr>
+      <td style="padding:5px 8px;border:1px solid var(--border);font-weight:600;white-space:nowrap;">${r.title}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.price.toLocaleString()}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.stock}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.thumb||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.tag||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);max-width:120px;overflow:hidden;text-overflow:ellipsis;">${r.desc||'—'}</td>
+    </tr>`).join('');
+  document.getElementById('previewTable').style.display='block';
+}
+
+async function importFromExcel() {
+  if(!importRows.length) return;
+  const btn=event.target; btn.textContent='Yuklanmoqda...'; btn.disabled=true;
+  let ok=0;
+  for(const row of importRows){ try{ await fetch(`${DB}venues.json`,{method:'POST',body:JSON.stringify(row)}); ok++; }catch(e){} }
+  toast(`✅ ${ok} ta mahsulot yuklandi!`,'var(--green)');
+  closeImport(); loadData();
+}
+
+function renderManualTable() {
+  manualRowCount=0;
+  document.getElementById('manualBody').innerHTML='';
+  for(let i=0;i<3;i++) addManualRow();
+}
+
+function addManualRow() {
+  const tbody=document.getElementById('manualBody');
+  const i=manualRowCount++;
+  const catOpts=cats.map(c=>`<option>${c}</option>`).join('');
+  const inS='width:100%;padding:6px;border:none;outline:none;font-family:inherit;font-size:13px;background:transparent;';
+  const tdS='border:1px solid var(--border);';
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td style="${tdS}padding:4px 6px;color:var(--muted);font-size:12px;text-align:center;">${i+1}</td>
+    <td style="${tdS}"><input placeholder="Nomi *" style="${inS}min-width:120px;"></td>
+    <td style="${tdS}"><input type="number" placeholder="Narxi *" style="${inS}width:90px;"></td>
+    <td style="${tdS}"><input type="number" placeholder="Soni" style="${inS}width:60px;"></td>
+    <td style="${tdS}"><input placeholder="https://..." style="${inS}width:140px;font-size:11px;"></td>
+    <td style="${tdS}"><select style="${inS}width:110px;">${catOpts}</select></td>
+    <td style="${tdS}"><input placeholder="Haqida..." style="${inS}width:120px;font-size:11px;"></td>
+    <td style="${tdS}text-align:center;"><button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:var(--red);"><i class="material-icons" style="font-size:16px;">close</i></button></td>`;
+  tbody.appendChild(tr);
+}
+
+async function importManual() {
+  const rows=[...document.querySelectorAll('#manualBody tr')];
+  const items=rows.map(tr=>{
+    const inp=tr.querySelectorAll('input,select');
+    return {title:inp[0]?.value.trim()||'',price:parseInt(inp[1]?.value)||0,stock:parseInt(inp[2]?.value)||0,thumb:inp[3]?.value.trim()||'',tag:inp[4]?.value||cats[0]||'',desc:inp[5]?.value.trim()||'',oldPrice:0};
+  }).filter(r=>r.title&&r.price>0);
+  if(!items.length) return alert("Kamida bitta to'liq qator kiriting!");
+  const btn=event.target; btn.textContent='Yuklanmoqda...'; btn.disabled=true;
+  let ok=0;
+  for(const item of items){ try{ await fetch(`${DB}venues.json`,{method:'POST',body:JSON.stringify(item)}); ok++; }catch(e){} }
+  toast(`✅ ${ok} ta mahsulot yuklandi!`,'var(--green)');
+  closeImport(); loadData();
+}
+
+function downloadTemplate(e) {
+  e.preventDefault();
+  loadXLSX().then(XLSX=>{
+    const ws=XLSX.utils.aoa_to_sheet([
+      ['title','price','stock','thumb','tag','desc'],
+      ['Namuna mahsulot 1',15000,10,'https://example.com/img.jpg','Elektronika','Qisqa tavsif'],
+      ['Namuna mahsulot 2',25000,5,'https://example.com/img2.jpg','Aksessuarlar','']
+    ]);
+    ws['!cols']=[{wch:25},{wch:10},{wch:8},{wch:45},{wch:15},{wch:30}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Mahsulotlar');
+    XLSX.writeFile(wb,'genesis_namuna.xlsx');
+  });
+}
+
+function loadXLSX() {
+  if(window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload=()=>res(window.XLSX); s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+document.getElementById('importOverlay').addEventListener('click',function(e){if(e.target===this)closeImport();});
+
+loadData();
+setInterval(loadData, 15000);
+</script>
+</body>
+</html>
